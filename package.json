@@ -1,0 +1,6 @@
+{
+  "name": "hza-daily-aar",
+  "version": "1.0.0",
+  "description": "Daily AAR Journal with Netlify Functions",
+  "private": true
+}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily AAR Journal</title>
+<style>
+  :root { --bg: #1a1a2e; --card: #16213e; --accent: #e94560; --text: #eee; --muted: #999; --green: #4ade80; --yellow: #facc15; --red: #f87171; --border: #2a2a4a; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+  .container { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+  .date-bar { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .date-bar span { font-weight: 600; }
+  .mood-section { margin-bottom: 20px; }
+  .mood-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 10px; }
+  .mood-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .mood-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 10px 16px; font-size: 1.3rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; color: var(--text); }
+  .mood-btn span.label { font-size: 0.75rem; color: var(--muted); }
+  .mood-btn:hover { border-color: var(--accent); transform: scale(1.05); }
+  .mood-btn.selected { border-color: var(--accent); background: rgba(233,69,96,0.15); }
+  .mood-btn.selected span.label { color: var(--text); }
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .section-title { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-hint { font-size: 0.75rem; color: var(--muted); margin-bottom: 10px; }
+  .task-row { background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .task-num { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+  .task-field { margin-bottom: 8px; }
+  .task-field label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .task-field input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); font-family: inherit; font-size: 0.85rem; }
+  .task-field input:focus { outline: none; border-color: var(--accent); }
+  .status-chips { display: flex; gap: 6px; }
+  .status-chip { padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .status-chip:hover { border-color: var(--accent); }
+  .status-chip.done { border-color: var(--green); background: rgba(74,222,128,0.15); color: var(--green); }
+  .status-chip.partial { border-color: var(--yellow); background: rgba(250,204,21,0.15); color: var(--yellow); }
+  .status-chip.missed { border-color: var(--red); background: rgba(248,113,113,0.15); color: var(--red); }
+  .score-bar { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; }
+  .score-label { font-size: 0.85rem; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .score-track { height: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+  textarea { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--text); font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 70px; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .save-btn { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+  .save-btn:hover { filter: brightness(1.1); }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .result-msg { border-radius: 10px; padding: 14px; margin-top: 14px; text-align: center; display: none; }
+  .result-msg.success { background: rgba(74,222,128,0.1); border: 1px solid var(--green); }
+  .result-msg.success .text { color: var(--green); }
+  .result-msg.error { background: rgba(248,113,113,0.1); border: 1px solid var(--red); }
+  .result-msg.error .text { color: var(--red); }
+  .result-msg .icon { font-size: 1.5rem; margin-bottom: 4px; }
+  .result-msg .text { font-size: 0.85rem; }
+  .history-section { margin-top: 30px; }
+  .history-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .history-date { font-weight: 600; font-size: 0.9rem; }
+  .history-score { font-size: 0.8rem; padding: 3px 10px; border-radius: 12px; }
+  .history-score.high { background: rgba(74,222,128,0.15); color: var(--green); }
+  .history-score.mid { background: rgba(250,204,21,0.15); color: var(--yellow); }
+  .history-score.low { background: rgba(248,113,113,0.15); color: var(--red); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Daily AAR Journal</h1>
+  <p class="subtitle">Zack's coaching — After-Action Review every day. Track what matters.</p>
+  <div class="date-bar">
+    <span id="todayDate"></span>
+    <span style="font-size:0.8rem;color:var(--muted)">AAR</span>
+  </div>
+  <div class="mood-section">
+    <div class="mood-label">How are you feeling today?</div>
+    <div class="mood-row">
+      <button class="mood-btn" data-mood="Great" onclick="selectMood(this)">&#x1F525;<span class="label">Great</span></button>
+      <button class="mood-btn" data-mood="Good" onclick="selectMood(this)">&#x1F60A;<span class="label">Good</span></button>
+      <button class="mood-btn" data-mood="Okay" onclick="selectMood(this)">&#x1F610;<span class="label">Okay</span></button>
+      <button class="mood-btn" data-mood="Rough" onclick="selectMood(this)">&#x1F624;<span class="label">Rough</span></button>
+      <button class="mood-btn" data-mood="Bad" onclick="selectMood(this)">&#x1F480;<span class="label">Bad</span></button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3 Most Important Tasks Today</div>
+    <div class="section-hint">What were the 3 things that mattered most? Why? Did you finish them?</div>
+    <div class="task-row">
+      <div class="task-num">TASK 1</div>
+      <div class="task-field"><label>What</label><input type="text" class="t-what" placeholder="What was the task?" /></div>
+      <div class="task-field"><label>Why it matters</label><input type="text" class="t-why" placeholder="Why was this important?" /></div>
+      <div class="task-field"><label>Status</label>
+        <div class="status-chips"><button class="status-chip" onclick="setChip(this,'done')">Done</button><button class="status-chip" onclick="setChip(this,'partial')">Partial</button><button class="status-chip" onclick="setChip(this,'missed')">Missed</button></div>
+      </div>
+    </div>
+    <div class="task-row">
+      <div class="task-num">TASK 2</div>
+      <div class="task-field"><label>What</label><input type="text" class="t-what" placeholder="What was the task?" /></div>
+      <div class="task-field"><label>Why it matters</label><input type="text" class="t-why" placeholder="Why was this important?" /></div>
+      <div class="task-field"><label>Status</label>
+        <div class="status-chips"><button class="status-chip" onclick="setChip(this,'done')">Done</button><button class="status-chip" onclick="setChip(this,'partial')">Partial</button><button class="status-chip" onclick="setChip(this,'missed')">Missed</button></div>
+      </div>
+    </div>
+    <div class="task-row">
+      <div class="task-num">TASK 3</div>
+      <div class="task-field"><label>What</label><input type="text" class="t-what" placeholder="What was the task?" /></div>
+      <div class="task-field"><label>Why it matters</label><input type="text" class="t-why" placeholder="Why was this important?" /></div>
+      <div class="task-field"><label>Status</label>
+        <div class="status-chips"><button class="status-chip" onclick="setChip(this,'done')">Done</button><button class="status-chip" onclick="setChip(this,'partial')">Partial</button><button class="status-chip" onclick="setChip(this,'missed')">Missed</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-label"><span>Completion Score</span><span id="scoreText">0 / 3</span></div>
+    <div class="score-track"><div class="score-fill" id="scoreFill" style="width:0;background:var(--red)"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Blockers</div>
+    <div class="section-hint">What got in the way? What slowed you down?</div>
+    <textarea id="blockers" placeholder="Anything that blocked progress..."></textarea>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Wins & Lessons</div>
+    <div class="section-hint">What went right? What did you learn?</div>
+    <textarea id="wins" placeholder="Wins, insights, things to remember..."></textarea>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tomorrow's #1 Priority</div>
+    <div class="section-hint">If you could only do ONE thing tomorrow, what is it?</div>
+    <input type="text" id="tomorrow" style="width:100%;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;font-size:0.9rem;" placeholder="The single most important thing for tomorrow..." />
+  </div>
+
+  <button class="save-btn" id="saveBtn" onclick="submitAAR()">Save Today's AAR</button>
+  <div class="result-msg success" id="successMsg">
+    <div class="icon">&#x2705;</div>
+    <div class="text">AAR saved! Your reflection is stored and will sync to Obsidian.</div>
+  </div>
+  <div class="result-msg error" id="errorMsg">
+    <div class="icon">&#x274C;</div>
+    <div class="text" id="errorText">Something went wrong. Try again.</div>
+  </div>
+
+  <div class="history-section" id="historySection" style="display:none">
+    <div class="section-title" style="color:var(--accent);margin-bottom:10px;">Recent Entries</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+<script>
+var today = new Date();
+var dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+var isoDate = today.toISOString().split('T')[0];
+document.getElementById('todayDate').textContent = dateStr;
+var selectedMood = null;
+
+// Load recent entries on page load
+loadHistory();
+
+function selectMood(btn) {
+  document.querySelectorAll('.mood-btn').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  selectedMood = btn.dataset.mood;
+}
+
+function setChip(btn, status) {
+  btn.parentElement.querySelectorAll('.status-chip').forEach(function(c) { c.className = 'status-chip'; });
+  btn.classList.add(status);
+  updateScore();
+}
+
+function updateScore() {
+  var done = 0;
+  document.querySelectorAll('.task-row').forEach(function(row) {
+    var what = row.querySelector('.t-what').value.trim();
+    if (!what) return;
+    if (row.querySelector('.status-chip.done')) done += 1;
+    else if (row.querySelector('.status-chip.partial')) done += 0.5;
+  });
+  var pct = Math.round((done / 3) * 100);
+  document.getElementById('scoreText').textContent = done + ' / 3';
+  var fill = document.getElementById('scoreFill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct >= 80 ? 'var(--green)' : pct >= 40 ? 'var(--yellow)' : 'var(--red)';
+}
+
+async function submitAAR() {
+  var btn = document.getElementById('saveBtn');
+  document.getElementById('successMsg').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+
+  var mood = selectedMood || 'Not set';
+  var tasks = [];
+  document.querySelectorAll('.task-row').forEach(function(row, i) {
+    var what = row.querySelector('.t-what').value.trim();
+    var why = row.querySelector('.t-why').value.trim();
+    var status = 'Not set';
+    if (row.querySelector('.status-chip.done')) status = 'Done';
+    else if (row.querySelector('.status-chip.partial')) status = 'Partial';
+    else if (row.querySelector('.status-chip.missed')) status = 'Missed';
+    tasks.push({ num: i + 1, what: what || '', why: why || '', status: status });
+  });
+
+  var blockers = document.getElementById('blockers').value.trim();
+  var wins = document.getElementById('wins').value.trim();
+  var tomorrow = document.getElementById('tomorrow').value.trim();
+
+  var hasContent = tasks.some(function(t) { return t.what !== ''; }) || blockers || wins || tomorrow;
+  if (!hasContent) {
+    document.getElementById('errorText').textContent = 'Fill in at least one task or field before saving.';
+    document.getElementById('errorMsg').style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    var resp = await fetch('/.netlify/functions/save-aar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: isoDate, mood: mood, tasks: tasks, blockers: blockers, wins: wins, tomorrow: tomorrow })
+    });
+    var data = await resp.json();
+    if (resp.ok && data.success) {
+      document.getElementById('successMsg').style.display = 'block';
+      btn.textContent = 'Saved!';
+      loadHistory();
+    } else {
+      throw new Error(data.error || 'Save failed');
+    }
+  } catch (e) {
+    document.getElementById('errorText').textContent = 'Error: ' + e.message;
+    document.getElementById('errorMsg').style.display = 'block';
+    btn.textContent = "Save Today's AAR";
+    btn.disabled = false;
+    return;
+  }
+
+  setTimeout(function() { btn.disabled = false; btn.textContent = "Save Today's AAR"; }, 5000);
+}
+
+async function loadHistory() {
+  try {
+    var resp = await fetch('/.netlify/functions/save-aar?action=list');
+    if (!resp.ok) return;
+    var data = await resp.json();
+    if (!data.entries || data.entries.length === 0) return;
+    var section = document.getElementById('historySection');
+    var list = document.getElementById('historyList');
+    list.innerHTML = '';
+    data.entries.slice(0, 7).forEach(function(entry) {
+      var div = document.createElement('div');
+      div.className = 'history-item';
+      var scoreClass = entry.score >= 2.5 ? 'high' : entry.score >= 1.5 ? 'mid' : 'low';
+      div.innerHTML = '<span class="history-date">' + entry.date + '</span><span class="history-score ' + scoreClass + '">' + entry.score + '/3 &middot; ' + entry.mood + '</span>';
+      list.appendChild(div);
+    });
+    section.style.display = 'block';
+  } catch(e) { /* silent fail on history load */ }
+}
+</script>
+</body>
+</html>
